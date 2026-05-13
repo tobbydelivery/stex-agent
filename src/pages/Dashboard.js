@@ -28,7 +28,9 @@ const Dashboard = () => {
       stopTracking();
       if (socket) socket.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
+
 
   const initSocket = () => {
     const newSocket = io(BACKEND_URL);
