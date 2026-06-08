@@ -413,4 +413,40 @@ const Dashboard = () => {
   );
 };
 
+        {/* Proof of Delivery - show when delivered */}
+        {order.status === "in_transit" && (
+          <div style={{ marginTop: "12px", padding: "12px", background: "rgba(39,174,96,0.1)", borderRadius: "12px", border: "1px solid rgba(39,174,96,0.2)" }}>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", margin: "0 0 8px" }}>
+              📸 Upload proof of delivery when package is delivered
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append("photo", file);
+                formData.append("orderId", order._id);
+                try {
+                   await fetch(`https://tobby-delivery-backend.onrender.com/api/orders/${order._id}/proof`, {
+                      method: "POST",
+                      headers: { Authorization: `Bearer ${localStorage.getItem("agentToken")}` },
+                      body: formData
+                    });
+                    showMessage("Photo uploaded successfully!", "success");
+                  } catch (err) {
+                    showMessage("Error uploading photo", "error");
+                  }
+                }}
+                style={{ display: "none" }}
+                id={`photo-${order._id}`}
+              />
+              <label htmlFor={`photo-${order._id}`} style={{ padding: "8px 18px", background: "rgba(39,174,96,0.2)", color: "#27ae60", border: "1px solid rgba(39,174,96,0.4)", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "13px" }}>
+               📸 Upload Delivery Photo
+             </label>
+           </div>
+         )}
+
 export default Dashboard;
