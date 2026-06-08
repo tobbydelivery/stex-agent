@@ -4,7 +4,6 @@ import API from "../services/api";
 import { io } from "socket.io-client";
 
 const BACKEND_URL = "https://tobby-delivery-backend.onrender.com";
-
 const Skeleton = ({ width = "100%", height = "16px", borderRadius = "8px" }) => (
   <div style={{
     width, height, borderRadius,
@@ -231,6 +230,33 @@ const Dashboard = () => {
             </button>
           ))}
         </div>
+
+        {/* Earnings Summary */}
+        <div style={{ ...glassStyle, padding: "24px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div>
+              <h3 style={{ color: "white", margin: "0 0 4px", fontSize: "15px", fontWeight: "800" }}>💰 My Earnings</h3>
+              <p style={{ color: "rgba(255,255,255,0.4)", margin: 0, fontSize: "12px" }}>Based on completed deliveries</p>
+         </div>
+       </div>
+       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+         {[
+           { label: "Today", value: `₦${completedOrders.filter(o => new Date(o.updatedAt).toDateString() === new Date().toDateString()).length * 1500}`, color: "#27ae60", icon: "📅" },
+           { label: "This Week", value: `₦${completedOrders.length * 1500}`, color: "#3498db", icon: "📊" },
+           { label: "Total Orders", value: completedOrders.filter(o => o.status === "delivered").length, color: "#f39c12", icon: "✅" }
+         ].map((stat, i) => (
+           <div key={i} style={{ background: `${stat.color}15`, border: `1px solid ${stat.color}30`, borderRadius: "14px", padding: "16px", textAlign: "center" }}>
+             <div style={{ fontSize: "22px", marginBottom: "6px" }}>{stat.icon}</div>
+             <div style={{ fontSize: "18px", fontWeight: "900", color: stat.color, marginBottom: "4px" }}>{stat.value}</div>
+             <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>{stat.label}</div>
+           </div>
+         ))}
+       </div>
+       <div style={{ marginTop: "16px", background: "rgba(255,255,255,0.04)", borderRadius: "12px", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+         <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>💡 Earn ₦1,500 per completed delivery</span>
+         <span style={{ color: "#27ae60", fontWeight: "700", fontSize: "13px" }}>Active ✓</span>
+       </div>
+     </div>
 
         {/* Active Orders */}
         {activeTab === "active" && (
