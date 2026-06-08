@@ -4,6 +4,7 @@ import API from "../services/api";
 import { io } from "socket.io-client";
 
 const BACKEND_URL = "https://tobby-delivery-backend.onrender.com";
+
 const Skeleton = ({ width = "100%", height = "16px", borderRadius = "8px" }) => (
   <div style={{
     width, height, borderRadius,
@@ -31,7 +32,7 @@ const Dashboard = () => {
     fetchOrders();
     initSocket();
     return () => { stopTracking(); if (socket) socket.disconnect(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const initSocket = () => {
@@ -86,6 +87,22 @@ const Dashboard = () => {
     setLocation(null);
   };
 
+  const uploadProofOfDelivery = async (file, orderId) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+    formData.append("orderId", orderId);
+    try {
+      await fetch(`${BACKEND_URL}/api/orders/${orderId}/proof`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("agentToken")}` },
+        body: formData
+      });
+      showMessage("📸 Proof of delivery uploaded!", "success");
+    } catch (err) {
+      showMessage("Error uploading photo", "error");
+    }
+  };
+
   const logout = () => {
     stopTracking();
     localStorage.removeItem("agentToken");
@@ -128,22 +145,11 @@ const Dashboard = () => {
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
         select option { background: #1a1a2e; color: white; }
       `}</style>
 
       {/* Navbar */}
-      <nav style={{
-        background: "rgba(0,0,0,0.6)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        padding: "14px 40px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        position: "sticky", top: 0, zIndex: 100
-      }}>
+      <nav style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", padding: "14px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "linear-gradient(135deg, #e74c3c, #c0392b)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>🚚</div>
           <div>
@@ -151,7 +157,6 @@ const Dashboard = () => {
             <div style={{ color: "#e74c3c", fontSize: "9px", letterSpacing: "2px" }}>AGENT PORTAL</div>
           </div>
         </div>
-
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
           {tracking && (
             <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(39,174,96,0.15)", padding: "8px 16px", borderRadius: "20px", border: "1px solid rgba(39,174,96,0.4)" }}>
@@ -160,14 +165,12 @@ const Dashboard = () => {
               {location && <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px" }}>📍 {location.latitude?.toFixed(3)}, {location.longitude?.toFixed(3)}</span>}
             </div>
           )}
-
           <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.06)", padding: "7px 14px", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.1)" }}>
             <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "linear-gradient(135deg, #e74c3c, #c0392b)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "12px", color: "white" }}>
               {agent.name?.charAt(0)?.toUpperCase()}
             </div>
             <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "13px", fontWeight: "600" }}>{agent.name}</span>
           </div>
-
           <button onClick={logout} style={{ padding: "8px 18px", background: "rgba(231,76,60,0.2)", color: "#e74c3c", border: "1px solid rgba(231,76,60,0.4)", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>
             Sign Out
           </button>
@@ -178,13 +181,7 @@ const Dashboard = () => {
 
         {/* Message Toast */}
         {message.text && (
-          <div style={{
-            background: message.type === "success" ? "rgba(39,174,96,0.15)" : "rgba(231,76,60,0.15)",
-            border: `1px solid ${message.type === "success" ? "rgba(39,174,96,0.4)" : "rgba(231,76,60,0.4)"}`,
-            borderRadius: "14px", padding: "13px 18px", marginBottom: "20px",
-            display: "flex", alignItems: "center", gap: "10px",
-            animation: "slideDown 0.3s ease"
-          }}>
+          <div style={{ background: message.type === "success" ? "rgba(39,174,96,0.15)" : "rgba(231,76,60,0.15)", border: `1px solid ${message.type === "success" ? "rgba(39,174,96,0.4)" : "rgba(231,76,60,0.4)"}`, borderRadius: "14px", padding: "13px 18px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px", animation: "slideDown 0.3s ease" }}>
             <span>{message.type === "success" ? "✅" : "⚠️"}</span>
             <span style={{ color: message.type === "success" ? "#27ae60" : "#e74c3c", fontWeight: "600", fontSize: "14px" }}>{message.text}</span>
           </div>
@@ -212,51 +209,43 @@ const Dashboard = () => {
           ))}
         </div>
 
+        {/* Earnings Summary */}
+        <div style={{ ...glassStyle, padding: "24px", marginBottom: "20px" }}>
+          <div style={{ marginBottom: "16px" }}>
+            <h3 style={{ color: "white", margin: "0 0 4px", fontSize: "15px", fontWeight: "800" }}>💰 My Earnings</h3>
+            <p style={{ color: "rgba(255,255,255,0.4)", margin: 0, fontSize: "12px" }}>Based on completed deliveries</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+            {[
+              { label: "Today", value: `₦${completedOrders.filter(o => new Date(o.updatedAt).toDateString() === new Date().toDateString()).length * 1500}`, color: "#27ae60", icon: "📅" },
+              { label: "This Week", value: `₦${completedOrders.length * 1500}`, color: "#3498db", icon: "📊" },
+              { label: "Completed", value: completedOrders.filter(o => o.status === "delivered").length, color: "#f39c12", icon: "✅" }
+            ].map((stat, i) => (
+              <div key={i} style={{ background: `${stat.color}15`, border: `1px solid ${stat.color}30`, borderRadius: "14px", padding: "16px", textAlign: "center" }}>
+                <div style={{ fontSize: "22px", marginBottom: "6px" }}>{stat.icon}</div>
+                <div style={{ fontSize: "18px", fontWeight: "900", color: stat.color, marginBottom: "4px" }}>{stat.value}</div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: "14px", background: "rgba(255,255,255,0.04)", borderRadius: "12px", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>💡 Earn ₦1,500 per completed delivery</span>
+            <span style={{ color: "#27ae60", fontWeight: "700", fontSize: "13px" }}>Active ✓</span>
+          </div>
+        </div>
+
         {/* Tabs */}
         <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
           {[
             { key: "active", label: "📦 Active Orders", count: pendingOrders.length },
             { key: "completed", label: "✅ Completed", count: completedOrders.length }
           ].map(tab => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-              padding: "10px 20px", borderRadius: "20px", cursor: "pointer",
-              background: activeTab === tab.key ? "rgba(231,76,60,0.8)" : "rgba(255,255,255,0.06)",
-              color: "white", border: activeTab === tab.key ? "none" : "1px solid rgba(255,255,255,0.1)",
-              fontWeight: activeTab === tab.key ? "700" : "500", fontSize: "13px",
-              display: "flex", alignItems: "center", gap: "8px"
-            }}>
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: "10px 20px", borderRadius: "20px", cursor: "pointer", background: activeTab === tab.key ? "rgba(231,76,60,0.8)" : "rgba(255,255,255,0.06)", color: "white", border: activeTab === tab.key ? "none" : "1px solid rgba(255,255,255,0.1)", fontWeight: activeTab === tab.key ? "700" : "500", fontSize: "13px", display: "flex", alignItems: "center", gap: "8px" }}>
               {tab.label}
               <span style={{ background: "rgba(255,255,255,0.2)", padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: "700" }}>{tab.count}</span>
             </button>
           ))}
         </div>
-
-        {/* Earnings Summary */}
-        <div style={{ ...glassStyle, padding: "24px", marginBottom: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div>
-              <h3 style={{ color: "white", margin: "0 0 4px", fontSize: "15px", fontWeight: "800" }}>💰 My Earnings</h3>
-              <p style={{ color: "rgba(255,255,255,0.4)", margin: 0, fontSize: "12px" }}>Based on completed deliveries</p>
-         </div>
-       </div>
-       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-         {[
-           { label: "Today", value: `₦${completedOrders.filter(o => new Date(o.updatedAt).toDateString() === new Date().toDateString()).length * 1500}`, color: "#27ae60", icon: "📅" },
-           { label: "This Week", value: `₦${completedOrders.length * 1500}`, color: "#3498db", icon: "📊" },
-           { label: "Total Orders", value: completedOrders.filter(o => o.status === "delivered").length, color: "#f39c12", icon: "✅" }
-         ].map((stat, i) => (
-           <div key={i} style={{ background: `${stat.color}15`, border: `1px solid ${stat.color}30`, borderRadius: "14px", padding: "16px", textAlign: "center" }}>
-             <div style={{ fontSize: "22px", marginBottom: "6px" }}>{stat.icon}</div>
-             <div style={{ fontSize: "18px", fontWeight: "900", color: stat.color, marginBottom: "4px" }}>{stat.value}</div>
-             <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>{stat.label}</div>
-           </div>
-         ))}
-       </div>
-       <div style={{ marginTop: "16px", background: "rgba(255,255,255,0.04)", borderRadius: "12px", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-         <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px" }}>💡 Earn ₦1,500 per completed delivery</span>
-         <span style={{ color: "#27ae60", fontWeight: "700", fontSize: "13px" }}>Active ✓</span>
-       </div>
-     </div>
 
         {/* Active Orders */}
         {activeTab === "active" && (
@@ -285,12 +274,8 @@ const Dashboard = () => {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 {pendingOrders.map((order, i) => (
-                  <div key={i} style={{
-                    ...glassStyle,
-                    overflow: "hidden",
-                    border: `1px solid ${getStatusColor(order.status)}30`,
-                    animation: "slideDown 0.3s ease"
-                  }}>
+                  <div key={i} style={{ ...glassStyle, overflow: "hidden", border: `1px solid ${getStatusColor(order.status)}30`, animation: "slideDown 0.3s ease" }}>
+
                     {/* Status Bar */}
                     <div style={{ height: "3px", background: `linear-gradient(90deg, ${getStatusColor(order.status)}, ${getStatusColor(order.status)}60)` }} />
 
@@ -313,13 +298,13 @@ const Dashboard = () => {
                     <div style={{ padding: "16px 20px" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
                         <div style={{ background: "rgba(52,152,219,0.1)", border: "1px solid rgba(52,152,219,0.2)", borderRadius: "12px", padding: "14px" }}>
-                          <div style={{ fontSize: "10px", color: "#3498db", fontWeight: "700", marginBottom: "8px", letterSpacing: "0.5px" }}>📤 PICKUP LOCATION</div>
+                          <div style={{ fontSize: "10px", color: "#3498db", fontWeight: "700", marginBottom: "8px" }}>📤 PICKUP LOCATION</div>
                           <div style={{ fontSize: "14px", color: "white", fontWeight: "700", marginBottom: "4px" }}>{order.sender?.name}</div>
                           <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>📞 {order.sender?.phone}</div>
                           <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginTop: "4px", lineHeight: "1.4" }}>{order.sender?.address}</div>
                         </div>
                         <div style={{ background: "rgba(39,174,96,0.1)", border: "1px solid rgba(39,174,96,0.2)", borderRadius: "12px", padding: "14px" }}>
-                          <div style={{ fontSize: "10px", color: "#27ae60", fontWeight: "700", marginBottom: "8px", letterSpacing: "0.5px" }}>📥 DELIVERY LOCATION</div>
+                          <div style={{ fontSize: "10px", color: "#27ae60", fontWeight: "700", marginBottom: "8px" }}>📥 DELIVERY LOCATION</div>
                           <div style={{ fontSize: "14px", color: "white", fontWeight: "700", marginBottom: "4px" }}>{order.recipient?.name}</div>
                           <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>📞 {order.recipient?.phone}</div>
                           <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", marginTop: "4px", lineHeight: "1.4" }}>{order.recipient?.address}</div>
@@ -329,7 +314,6 @@ const Dashboard = () => {
                       {/* Package & Actions */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
                         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                          {/* GPS Button */}
                           {activeOrderId === order._id ? (
                             <button onClick={stopTracking} style={{ padding: "10px 20px", background: "rgba(231,76,60,0.2)", color: "#e74c3c", border: "1px solid rgba(231,76,60,0.4)", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}>
                               <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#e74c3c", animation: "pulse 1s infinite", display: "inline-block" }} />
@@ -340,13 +324,11 @@ const Dashboard = () => {
                               📍 Start GPS Tracking
                             </button>
                           )}
-
                           <div style={{ background: "rgba(155,89,182,0.15)", border: "1px solid rgba(155,89,182,0.25)", borderRadius: "10px", padding: "8px 14px" }}>
-                            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>📦 {order.package?.description} • ⚖ {order.package?.weight}kg</span>
+                            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>📦 {order.package?.description} • ⚖️ {order.package?.weight}kg</span>
                           </div>
                         </div>
 
-                        {/* Status Dropdown */}
                         <select onChange={(e) => updateStatus(order._id, e.target.value)} value={order.status}
                           style={{ padding: "10px 14px", border: `1.5px solid ${getStatusColor(order.status)}50`, borderRadius: "10px", cursor: "pointer", fontSize: "13px", fontWeight: "700", color: getStatusColor(order.status), background: `${getStatusColor(order.status)}15`, outline: "none" }}>
                           <option value="pending">⏳ Pending</option>
@@ -356,6 +338,29 @@ const Dashboard = () => {
                           <option value="delayed">⚠️ Delayed</option>
                         </select>
                       </div>
+
+                      {/* Proof of Delivery - show when in transit */}
+                      {order.status === "in_transit" && (
+                        <div style={{ marginTop: "14px", padding: "14px", background: "rgba(39,174,96,0.08)", borderRadius: "12px", border: "1px solid rgba(39,174,96,0.2)" }}>
+                          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", margin: "0 0 10px" }}>
+                            📸 Upload proof of delivery when package is delivered
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            id={`photo-${order._id}`}
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) uploadProofOfDelivery(file, order._id);
+                            }}
+                          />
+                          <label htmlFor={`photo-${order._id}`} style={{ padding: "8px 18px", background: "rgba(39,174,96,0.2)", color: "#27ae60", border: "1px solid rgba(39,174,96,0.4)", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "13px" }}>
+                            📸 Upload Delivery Photo
+                          </label>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -412,41 +417,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-        {/* Proof of Delivery - show when delivered */}
-        {order.status === "in_transit" && (
-          <div style={{ marginTop: "12px", padding: "12px", background: "rgba(39,174,96,0.1)", borderRadius: "12px", border: "1px solid rgba(39,174,96,0.2)" }}>
-            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", margin: "0 0 8px" }}>
-              📸 Upload proof of delivery when package is delivered
-            </p>
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const formData = new FormData();
-                formData.append("photo", file);
-                formData.append("orderId", order._id);
-                try {
-                   await fetch(`https://tobby-delivery-backend.onrender.com/api/orders/${order._id}/proof`, {
-                      method: "POST",
-                      headers: { Authorization: `Bearer ${localStorage.getItem("agentToken")}` },
-                      body: formData
-                    });
-                    showMessage("Photo uploaded successfully!", "success");
-                  } catch (err) {
-                    showMessage("Error uploading photo", "error");
-                  }
-                }}
-                style={{ display: "none" }}
-                id={`photo-${order._id}`}
-              />
-              <label htmlFor={`photo-${order._id}`} style={{ padding: "8px 18px", background: "rgba(39,174,96,0.2)", color: "#27ae60", border: "1px solid rgba(39,174,96,0.4)", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "13px" }}>
-               📸 Upload Delivery Photo
-             </label>
-           </div>
-         )}
 
 export default Dashboard;
